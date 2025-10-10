@@ -30,7 +30,7 @@ Perguntas sobre o desafio 2
 
 A pipeline de ingestão de dados utilizada para resolver o desafio 1 é baseada em um processo de ingestão por lotes, onde o arquivo `rastreamento.csv` é a fonte de dados utilizada e o banco de dados SQL Postgres é o destino final. 
 
-A arquitetura utilizada para construir essa pipeline foi a arquitetura de medalhão, bastante comum na construção de data warehouses, baseando-se nos estágios bronze, prata e ouro: 
+A arquitetura utilizada para construir essa pipeline foi a arquitetura de medalhão, bastante comum na construção de data warehouses e baseando-se nos estágios bronze, prata e ouro, com o objetivo de construir um Data Mart (subset do Data Warehouse para uma análise específica, neste caso, rastreamento de pacotes): 
 
 ![Pipeline de Ingestão de Dados](/assets/pipeline-ingestao-dados.png)
 
@@ -59,8 +59,44 @@ A arquitetura utilizada para construir essa pipeline foi a arquitetura de medalh
 
         etl_silver_to_gold.ipynb
 
+O fluxo de dados foi implementado por meio de dois scripts ETL que processam os dados de forma incremental e organizada, oferecendo rastreabilidade, garantia de qualidade e escalabilidade do pipeline. 
+
+As tecnologias utilizadas foram a linguagem Python em conjunto com as bibliotecas Pandas e Pandera para manipulação da base de dados e validação da mesma com schemas. O SQLAlchemy permitiu mapear os objetos para tabelas do banco de dados, simplificando a persistência por não ser necessário utilizar strings para modelar as querys. O PostgreSQL foi o banco de dados relacional escolhido por ser robusto, open-source e surpotar tipos avançados, ideal para os dados estruturados e relacionamentos entre entidades. Por fim, o Docker foi a ferramenta que garantiu o isolamento do ambiente e a reprodutibilidade do projeto, executando o banco de dados de forma consistente em qualquer máquina.
+
+O design do modelo de dados foi projetado para duas entidades principais:
+
+![Diagrama Entidade-Relacionamento](/assets/diagrama-entidade-relacionamento.png)
+
+1.  Pacote (id_pacote, origem, destino)
+2.  Rastreamento (id_rastreio, status_rastreamento, data_atualizcao, id_pacote)
+
+O relacionamento é 1:N, onde um pacote pode possuir vários eventos de rastreamento ao longo do seu processo de entrega. 
+
+![Diagrama Lógico de Dados](/assets/diagrama-logico-dados.png)
+
 ## SOLUÇÃO DO DESAFIO 2
 
-Para a construção de um sistema de relatórios que consuma os dados de rastreamento, o ideal é que a modelagem do sistema esteja implementada como um Data Warehouse, ideal para construção de relatórios e BI. Para que o monitoramento seja eficiente e possua velocidade na hora de fazer relatórios, torna-se necessário uma modelagem menos estruturada e que facilite todo o processo de análise de dados, com o star scheme se tornando a modelagem ideal para este problema.
+1. Proponha uma solução para criar um dashboard em tempo quase real
+que mostre o número de pacotes por status (EM TRANSITO, ENTREGUE,
+etc.) e a média de tempo de entrega (do envio até a entrega final).
 
-A mudança do consumo de dados para um endpoint de API em tempo real é fundamental para a arquitetura do sistema construído, pois ao invés de consumir os dados em lotes, estariamos consumindo dados continuamente
+Para a construção de um sistema de relatórios que consuma os dados de rastreamento, o ideal é que a modelagem do sistema esteja implementada como um Data Warehouse, ideal para construção de relatórios e BI. Essa estrutura permite consolidar informações históricas e facilitar a criação de relatórios e dashboards analíticos.
+
+Como a eficiência no monitoramento e velocidade do dashboard são consideradas importantes regras de negócio, uma modelagem menos normalizada e otimizada para leitura é indicado, sendo o esquema de estrela (star schema) o mais adequado. Nesse modelo, a tabela fato armazena os dados de rastreamento e as tabelas dimensão fornecem o contexto necessário para as análises e agregações de dados. 
+
+Devido à necessidade do dashboard precisar ser monitorado em tempo quase real, o Grafana ou Prometheus se apresentam como as ferramentas ideais para gerar as visualizações necessárias por consultar os dados diretamente da fonte e serem indicados para monitoramento contínuo de dados, métricas e atualizações em tempo quase real, diferentemente de ferramentas tradicionais de BI como o Power BI ou Tableau.
+
+Caso ocorra a troca do recebimento de dados de um arquivo csv para um endpoint em tempo real via API, mudanças importantes deverão ocorrer para que a pipeline se mantenha estável e funcional. 
+
+2. Quais seriam as implicações se, no futuro, a empresa passar a receber
+dados de rastreamento em tempo real via um endpoint de API, em vez
+de um arquivo CSV diário? O que você precisaria adaptar no seu pipeline
+e modelo de dados?
+
+    2.1. Como os dados são recebidos por um arquivo diário, isso significa que são blocos de dados que são passados para o banco de dados, ocorrendo o processamento por lotes (batch). Com a implementação da obtenção de dados via endpoint de uma api, os dados serão transmitidos de forma contínua à medida que os eventos ocorrerem, transformando o ambiente de ingestão de dados para um processamento em fluxo (streaming).
+
+    2.2. A pipeline de ingestão deverá ser adaptada de um modelo que processa em lotes para um modelo que processa continuamente dados. Com isso, ao invés de ler o(s) arquivo(s) uma vez por dia, o sistema deve receber e processar cada evento à medida que ele ocorre, com as etapas de tratamento e cálculo das métricas ocorrendo de forma paralela e mantendo as agregações atualizadas.
+
+    2.3. O modelo de dados precisaria evoluir para um modelo orientado a eventos pois a cada atualização de status de um pacote o registro deve ser persistido como um evento independente, com suas respectivas mudanças (status_rastreamento, horário), permitindo calcular as métricas de forma incremental e mantendo o histórico de movimentações.
+
+    2.4. O sistema precisaria de camadas de validação mais complexas para lidar com o fluxo contínuo de dados e possíveis erros de duplicação de eventos.
