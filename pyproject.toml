@@ -1,0 +1,20 @@
+[project]
+name = "teste-tecnico-ize"
+version = "0.1.0"
+description = "Teste técnico da empresa IZE Gestão Empresarial para a vaga de Engenheiro(a) de Dados Júnior"
+authors = [
+    {name = "Lucas Bottino",email = "lucasgabottino@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas (>=2.3.3,<3.0.0)",
+    "pandera (>=0.26.1,<0.27.0)",
+    "sqlalchemy (>=2.0.44,<3.0.0)",
+    "psycopg2-binary (>=2.9.11,<3.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

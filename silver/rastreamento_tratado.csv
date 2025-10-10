@@ -1,0 +1,11 @@
+id_pacote,origem,destino,status_rastreamento,data_atualizacao
+1001,São Paulo,Rio de Janeiro,EM TRÂNSITO,2024-05-20 10:00:00
+1002,Belo Horizonte,Salvador,ENTREGUE,2024-05-18 14:30:00
+1003,Curitiba,Porto Alegre,EXTRAVIADO,2024-05-19 08:15:00
+1004,São Paulo,Brasília,EM TRÂNSITO,2024-05-20 11:45:00
+1005,Recife,Fortaleza,EM ROTA DE ENTREGA,2024-05-20 09:20:00
+1006,Rio de Janeiro,São Paulo,ENTREGUE,2024-05-19 17:00:00
+1007,Salvador,Belo Horizonte,EM TRÂNSITO,2024-05-20 13:00:00
+1008,Fortaleza,Recife,EM TRÂNSITO,2024-05-20 10:30:00
+1009,Brasília,Curitiba,AGUARDANDO RETIRADA,2024-05-20 09:00:00
+1010,Porto Alegre,São Paulo,CANCELADO,2024-05-18 11:00:00
